@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedPredict AI - Season Report</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container" id="season-screen">
+        <h1>Choose a Season</h1>
+        <div class="grid">
+            <button class="season-btn">Monsoon</button>
+            <button class="season-btn">Spring</button>
+            <button class="season-btn">Autumn</button>
+            <button class="season-btn">Winter</button>
+        </div>
+        <button class="report-btn">Read Report</button>
+    </div>
+
+    <div class="container" id="report-container" style="display: none;">
+        <h1 id="report-title"></h1>
+        <table id="report-table">
+            <thead>
+                <tr>
+                    <th>Medicine</th>
+                    <th>Predicted Demand</th>
+                    <th>Stock Remaining</th>
+                    <th>Reorder Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const seasonButtons = document.querySelectorAll('.season-btn');
+        const reportButton = document.querySelector('.report-btn');
+        const reportContainer = document.getElementById('report-container');
+        const reportTitle = document.getElementById('report-title');
+        const reportTableBody = document.querySelector('#report-table tbody');
+        let selectedSeason = '';
+
+        seasonButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                selectedSeason = button.textContent;
+                seasonButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+            });
+        });
+
+        reportButton.addEventListener('click', () => {
+            if (selectedSeason) {
+                fetch(`/report?season=${selectedSeason}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        reportTitle.textContent = `Medicine Report for ${selectedSeason}`;
+                        reportTableBody.innerHTML = '';
+                        data.forEach(item => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${item.Medicine}</td>
+                                <td>${item.Predicted_Demand}</td>
+                                <td>${item.Stock_Remaining}</td>
+                                <td>${item.Reorder_Quantity}</td>
+                            `;
+                            reportTableBody.appendChild(row);
+                        });
+                        document.getElementById('season-screen').style.display = 'none';
+                        reportContainer.style.display = 'block';
+                    });
+            } else {
+                alert('Please select a season.');
+            }
+        });
+    </script>
+</body>
+</html>

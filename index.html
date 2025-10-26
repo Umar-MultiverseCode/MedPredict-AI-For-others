@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedPredict AI - Predictive Models for Healthcare</title>
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+     Theme Toggle 
+    <input type="checkbox" id="theme-toggle" class="theme-toggle">
+    
+     Navigation 
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-plus">+</span>
+                <span class="logo-text">MedPredict</span>
+                <span class="logo-ai">AI</span>
+            </div>
+
+            
+            <div class="nav-menu">
+                <a href="#home" class="nav-link active">Home</a>
+                
+                <a href="#footer" class="nav-link">About</a> <!-- ✅ Updated -->
+            </div>
+            
+            <label for="theme-toggle" class="theme-switch">
+                <span class="theme-icon">🌙</span>
+                <span class="theme-icon">☀️</span>
+            </label>
+            
+            <div class="mobile-menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        <div class="nav-menu-mobile">
+            <a href="#home" class="nav-link active">Home</a>
+            
+            <a href="#footer" class="nav-link">About</a> <!-- ✅ Updated -->
+        </div>
+    </nav>
+
+     Hero Section 
+    <section id="home" class="hero">
+        <div class="hero-background">
+            <div class="floating-particles"></div>
+            <div class="medical-icons"></div>
+        </div>
+        
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="title-line">Revolutionizing Healthcare</span>
+                <span class="title-line">with AI Predictions</span>
+            </h1>
+            <p class="hero-subtitle">Advanced predictive models for medicine stock optimization and rural healthcare accessibility</p>
+            <div class="hero-buttons">
+                
+            </div>
+        </div>
+        
+        <div class="hero-stats">
+            <div class="stat-item">
+                <span class="stat-number">99.7%</span>
+                <span class="stat-label">Accuracy</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">2.5M+</span>
+                <span class="stat-label">Predictions</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">500+</span>
+                    <span class="stat-label">Hospitals</span>
+                </div>
+            </div>
+        </section>
+
+    </section>
+
+    <!-- Season Report App -->
+    <section id="season-report" class="season-report-section">
+        <div class="container" id="season-screen">
+            <h1>Choose a Season</h1>
+            <div class="grid">
+                <button class="season-btn">Monsoon</button>
+                <button class="season-btn">Spring</button>
+                <button class="season-btn">Autumn</button>
+                <button class="season-btn">Winter</button>
+            </div>
+            <button class="report-btn">Read Report</button>
+        </div>
+
+        <div class="container" id="report-container" style="display: none;">
+            <h1 id="report-title"></h1>
+            <table id="report-table">
+                <thead>
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Predicted Demand</th>
+                        <th>Stock Remaining</th>
+                        <th>Reorder Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+
+     Footer 
+    <footer class="footer" id="footer"> <!-- ✅ Added ID -->
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span class="logo-text">MedPredict</span>
+                    <span class="logo-ai">AI</span>
+                    <p>Revolutionizing healthcare with predictive intelligence</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h4>Product</h4>
+                        <a href="#medicine-stocks">Medicine Stocks</a>
+                        <a href="#rural-areas">Rural Areas</a>
+                        <a href="#analytics">Analytics</a>
+                    </div>
+                    
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 MedPredict AI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+      AOS.init();
+    </script>
+    <script>
+        const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+        const mobileMenu = document.querySelector('.nav-menu-mobile');
+
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+        });
+
+        const particlesContainer = document.querySelector('.floating-particles');
+        const hero = document.querySelector('.hero');
+
+        hero.addEventListener('mousemove', (e) => {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            const x = e.clientX;
+            const y = e.clientY;
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            particlesContainer.appendChild(particle);
+
+            setTimeout(() => {
+                particle.remove();
+            }, 1000);
+        });
+        
+    </script>
+    <script>
+        const seasonButtons = document.querySelectorAll('.season-btn');
+        const reportButton = document.querySelector('.report-btn');
+        const reportContainer = document.getElementById('report-container');
+        const reportTitle = document.getElementById('report-title');
+        const reportTableBody = document.querySelector('#report-table tbody');
+        let selectedSeason = '';
+
+        seasonButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                selectedSeason = button.textContent;
+                seasonButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+            });
+        });
+
+        reportButton.addEventListener('click', () => {
+            if (selectedSeason) {
+                fetch(`/report?season=${selectedSeason}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        reportTitle.textContent = `Medicine Report for ${selectedSeason}`;
+                        reportTableBody.innerHTML = '';
+                        data.forEach(item => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${item.Medicine}</td>
+                                <td>${item.Predicted_Demand}</td>
+                                <td>${item.Stock_Remaining}</td>
+                                <td>${item.Reorder_Quantity}</td>
+                            `;
+                            reportTableBody.appendChild(row);
+                        });
+                        document.getElementById('season-screen').style.display = 'none';
+                        reportContainer.style.display = 'block';
+                    });
+            } else {
+                alert('Please select a season.');
+            }
+        });
+    </script>
+</body>
+</html>
