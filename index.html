@@ -6,6 +6,7 @@
     <title>MedPredict AI - Predictive Models for Healthcare</title>
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
     <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
      Theme Toggle 
@@ -90,12 +91,26 @@
                 <button class="season-btn">Spring</button>
                 <button class="season-btn">Autumn</button>
                 <button class="season-btn">Winter</button>
+                <button class="season-btn">Summer</button>
             </div>
+            <p>Select a season to generate a predictive stock report.</p>
             <button class="report-btn">Read Report</button>
         </div>
 
         <div class="container" id="report-container" style="display: none;">
             <h1 id="report-title"></h1>
+            <div id="loader" style="display: none; text-align: center; margin: 20px;">
+                <div class="spinner"></div>
+                <p>Loading report...</p>
+            </div>
+            <div class="chart-container">
+                <div class="chart-wrapper">
+                    <canvas id="demand-pie-chart"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="demand-bar-chart"></canvas>
+                </div>
+            </div>
             <table id="report-table">
                 <thead>
                     <tr>
@@ -108,6 +123,40 @@
                 <tbody>
                 </tbody>
             </table>
+            <button id="back-to-seasons" class="report-btn" style="margin-top: 2rem;">Back to Seasons</button>
+        </div>
+    </section>
+
+    <!-- Medicine Stocks Section -->
+    <section id="medicine-stocks" class="section alt-bg">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Medicine Stock Optimization</h2>
+                <p class="section-subtitle">Our AI analyzes historical data, seasonal trends, and local health patterns to predict future medicine demand, preventing stockouts and reducing waste.</p>
+            </div>
+            <!-- Content for this section can be added here -->
+        </div>
+    </section>
+
+    <!-- Rural Areas Section -->
+    <section id="rural-areas" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Improving Rural Healthcare</h2>
+                <p class="section-subtitle">We focus on ensuring that essential medicines are always available in remote and underserved rural clinics, bridging the healthcare gap.</p>
+            </div>
+            <!-- Content for this section can be added here -->
+        </div>
+    </section>
+
+    <!-- Analytics Section -->
+    <section id="analytics" class="section alt-bg">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Advanced Analytics</h2>
+                <p class="section-subtitle">Gain deep insights from interactive dashboards and detailed reports. Understand demand patterns, stock levels, and reorder requirements at a glance.</p>
+            </div>
+            <!-- Content for this section can be added here -->
         </div>
     </section>
 
@@ -173,6 +222,8 @@
         const reportContainer = document.getElementById('report-container');
         const reportTitle = document.getElementById('report-title');
         const reportTableBody = document.querySelector('#report-table tbody');
+        const loader = document.getElementById('loader');
+        const backButton = document.getElementById('back-to-seasons');
         let selectedSeason = '';
 
         seasonButtons.forEach(button => {
@@ -183,30 +234,159 @@
             });
         });
 
+        backButton.addEventListener('click', () => {
+            document.getElementById('report-container').style.display = 'none';
+            document.getElementById('season-screen').style.display = 'block';
+        })
+
         reportButton.addEventListener('click', () => {
             if (selectedSeason) {
+                loader.style.display = 'block';
                 fetch(`/report?season=${selectedSeason}`)
                     .then(response => response.json())
                     .then(data => {
+                        loader.style.display = 'none';
                         reportTitle.textContent = `Medicine Report for ${selectedSeason}`;
                         reportTableBody.innerHTML = '';
-                        data.forEach(item => {
+                        if (data.report && data.report.length > 0) {
+                            data.report.forEach(item => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${item.Medicine}</td>
+                                    <td>${item.Predicted_Demand}</td>
+                                    <td>${item.Stock_Remaining}</td>
+                                    <td>${item.Reorder_Quantity}</td>
+                                `;
+                                reportTableBody.appendChild(row);
+                            });
+                            renderCharts(data.chart_data, data.report);
+                        } else {
                             const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td>${item.Medicine}</td>
-                                <td>${item.Predicted_Demand}</td>
-                                <td>${item.Stock_Remaining}</td>
-                                <td>${item.Reorder_Quantity}</td>
-                            `;
+                            row.innerHTML = '<td colspan="4">No medicines require reordering for this season.</td>';
                             reportTableBody.appendChild(row);
-                        });
+                        }
                         document.getElementById('season-screen').style.display = 'none';
                         reportContainer.style.display = 'block';
+                    })
+                    .catch(error => {
+                        loader.style.display = 'none';
+                        alert('Error fetching report: ' + error.message);
                     });
             } else {
                 alert('Please select a season.');
             }
         });
+
+        let pieChartInstance = null;
+        let barChartInstance = null;
+
+        function renderCharts(pieChartData, barChartData) {
+            if (pieChartInstance) pieChartInstance.destroy();
+            if (barChartInstance) barChartInstance.destroy();
+
+            const chartTextColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-text-color').trim();
+            Chart.defaults.color = chartTextColor;
+
+            const pieCtx = document.getElementById('demand-pie-chart').getContext('2d');
+            pieChartInstance = new Chart(pieCtx, {
+                type: 'doughnut', // Doughnut is often more readable than pie
+                data: {
+                    labels: pieChartData.labels,
+                    datasets: [{
+                        label: 'Predicted Demand',
+                        data: pieChartData.data,
+                        backgroundColor: [ // More vibrant colors
+                            'rgba(255, 99, 132, 0.6)',
+                            'rgba(54, 162, 235, 0.6)',
+                            'rgba(255, 206, 86, 0.6)',
+                            'rgba(75, 192, 192, 0.6)',
+                            'rgba(153, 102, 255, 0.6)',
+                            'rgba(255, 159, 64, 0.6)'
+                        ],
+                        borderColor: [
+                            '#fff'
+                        ],
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: chartTextColor
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Predicted Demand Distribution',
+                            color: chartTextColor,
+                            font: { size: 16 }
+                        }
+                    }
+                }
+            });
+
+            const barCtx = document.getElementById('demand-bar-chart').getContext('2d');
+            barChartInstance = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: barChartData.map(item => item.Medicine),
+                    datasets: [
+                        {
+                            label: 'Predicted Demand',
+                            data: barChartData.map(item => item.Predicted_Demand),
+                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Stock Remaining',
+                            data: barChartData.map(item => item.Stock_Remaining),
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Reorder Quantity',
+                            data: barChartData.map(item => item.Reorder_Quantity),
+                            backgroundColor: 'rgba(255, 206, 86, 0.6)',
+                            borderColor: 'rgba(255, 206, 86, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: chartTextColor
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Demand vs. Stock',
+                            color: chartTextColor,
+                            font: { size: 16 }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            barPercentage: 0.8,
+                            categoryPercentage: 0.6
+                        },
+                        y: {
+                            grid: { color: 'rgba(128, 128, 128, 0.2)' },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
     </script>
 </body>
 </html>

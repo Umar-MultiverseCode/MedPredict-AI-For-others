@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MedPredict AI - Season Report</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="static/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container" id="season-screen">
@@ -14,12 +15,17 @@
             <button class="season-btn">Spring</button>
             <button class="season-btn">Autumn</button>
             <button class="season-btn">Winter</button>
+            <button class="season-btn">Summer</button>
         </div>
         <button class="report-btn">Read Report</button>
     </div>
 
     <div class="container" id="report-container" style="display: none;">
         <h1 id="report-title"></h1>
+        <div class="chart-container">
+            <canvas id="demand-pie-chart"></canvas>
+            <canvas id="demand-bar-chart"></canvas>
+        </div>
         <table id="report-table">
             <thead>
                 <tr>
@@ -57,7 +63,7 @@
                     .then(data => {
                         reportTitle.textContent = `Medicine Report for ${selectedSeason}`;
                         reportTableBody.innerHTML = '';
-                        data.forEach(item => {
+                        data.report.forEach(item => {
                             const row = document.createElement('tr');
                             row.innerHTML = `
                                 <td>${item.Medicine}</td>
@@ -67,6 +73,9 @@
                             `;
                             reportTableBody.appendChild(row);
                         });
+
+                        renderCharts(data.chart_data, data.report);
+
                         document.getElementById('season-screen').style.display = 'none';
                         reportContainer.style.display = 'block';
                     });
@@ -74,6 +83,97 @@
                 alert('Please select a season.');
             }
         });
+
+        function renderCharts(pieChartData, barChartData) {
+            const pieCtx = document.getElementById('demand-pie-chart').getContext('2d');
+            new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: pieChartData.labels,
+                    datasets: [{
+                        label: 'Predicted Demand',
+                        data: pieChartData.data,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(255, 159, 64, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Predicted Demand Distribution'
+                        }
+                    }
+                }
+            });
+
+            const barCtx = document.getElementById('demand-bar-chart').getContext('2d');
+            new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: barChartData.map(item => item.Medicine),
+                    datasets: [
+                        {
+                            label: 'Predicted Demand',
+                            data: barChartData.map(item => item.Predicted_Demand),
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Stock Remaining',
+                            data: barChartData.map(item => item.Stock_Remaining),
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Reorder Quantity',
+                            data: barChartData.map(item => item.Reorder_Quantity),
+                            backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                            borderColor: 'rgba(255, 206, 86, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Demand vs. Stock'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
     </script>
 </body>
 </html>

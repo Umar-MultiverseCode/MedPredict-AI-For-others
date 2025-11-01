@@ -27,11 +27,13 @@ for col in ['name','manufacturer_name','type','pack_size_label','location_id','c
 
 def get_season(date):
     month = date.month
-    if month in [3,4,5]:
+    if month in [2, 3]:
+        return 'Spring'
+    elif month in [4, 5, 6]:
         return 'Summer'
-    elif month in [6,7,8,9]:
+    elif month in [7, 8, 9]:
         return 'Monsoon'
-    elif month in [10,11]:
+    elif month in [10, 11]:
         return 'Autumn'
     else:
         return 'Winter'
@@ -44,7 +46,7 @@ data['season_enc'] = le_season.transform(data['calculated_season'])
 @app.route('/report')
 def generate_report():
     user_season = request.args.get('season')
-    if user_season not in ['Summer','Monsoon','Autumn','Winter']:
+    if user_season not in ['Summer','Monsoon','Autumn','Winter', 'Spring']:
         return jsonify({'error': 'Invalid Season! Please enter Summer, Monsoon, Autumn, or Winter.'}), 400
 
     season_enc = le_season.transform([user_season])[0]
@@ -59,24 +61,39 @@ def generate_report():
         
         predicted_demand = model.predict([[name_enc, season_enc]])[0]
         
-        # Only include medicines where stock < predicted demand
         stock_remaining = row['stock_remaining']
-        if stock_remaining >= predicted_demand:
-            continue
-        
         reorder_qty = max(0, predicted_demand - stock_remaining)
         
         report.append({
             'Medicine': name,
             'Predicted_Demand': round(predicted_demand),
             'Stock_Remaining': stock_remaining,
-            'Reorder_Quantity': round(reorder_qty)
+            'Reorder_Quantity': round(reorder_qty),
+            'Needs_Reorder': stock_remaining < predicted_demand
         })
 
-    # Sort by urgency (highest reorder first)
-    report_df = pd.DataFrame(report).sort_values(by='Reorder_Quantity', ascending=False)
+    if not report:
+         return jsonify({
+            'report': [],
+            'chart_data': {'labels': [], 'data': []}
+        })
 
-    return jsonify(report_df.to_dict('records'))
+    # Create a DataFrame for the full report, sorted for the table view
+    full_report_df = pd.DataFrame(report).sort_values(by='Reorder_Quantity', ascending=False)
+
+    # For charts, use only the top 10 medicines with the highest predicted demand
+    chart_report_data = sorted(report, key=lambda x: x['Predicted_Demand'], reverse=True)[:10]
+    chart_df = pd.DataFrame(chart_report_data)
+
+    chart_data = {
+        'labels': chart_df['Medicine'].tolist(),
+        'data': chart_df['Predicted_Demand'].tolist()
+    }
+
+    return jsonify({
+        'report': full_report_df.to_dict('records'), # Send the full report for the table
+        'chart_data': chart_data
+    })
 
 @app.route('/')
 def index():

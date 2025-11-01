@@ -1,3 +1,41 @@
+/* Report Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 2rem;
+    box-shadow: var(--shadow-medium);
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+thead th {
+    background-color: var(--bg-secondary);
+}
+
+.chart-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.chart-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 400px; /* Give a minimum height to avoid collapse */
+}
+
+@media (max-width: 900px) {
+    .chart-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
 /* CSS Custom Properties for Theming */
 :root {
   --primary-color: #10b981;
@@ -9,6 +47,7 @@
   --bg-secondary: #f9fafb;
   --bg-card: #ffffff;
   --border-color: #e5e7eb;
+  --chart-text-color: #6b7280; /* Color for chart labels and titles */
   --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.1);
   --shadow-heavy: 0 20px 25px rgba(0, 0, 0, 0.1);
@@ -25,6 +64,7 @@
   --bg-secondary: #0f172a;
   --bg-card: #1e293b;
   --border-color: #334155;
+  --chart-text-color: #9ca3af;
   --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.5);
   --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.5);
   --shadow-heavy: 0 20px 25px rgba(0, 0, 0, 0.5);
@@ -688,6 +728,23 @@ body {
   .tab-button {
     text-align: center;
   }
+
+  /* Responsive table */
+  #report-table thead {
+    display: none;
+  }
+  #report-table, #report-table tbody, #report-table tr, #report-table td {
+    display: block;
+    width: 100%;
+  }
+  #report-table tr {
+    margin-bottom: 15px;
+  }
+  #report-table td {
+    text-align: right;
+    padding-left: 50%;
+    position: relative;
+  }
 }
 
 @media (max-width: 480px) {
@@ -802,7 +859,7 @@ body.dark .season-report-section {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 1100px;
     margin: auto;
     text-align: center;
 }
@@ -916,4 +973,31 @@ body.dark .season-report-section {
   font-weight: bold;
   margin-right: 10px;
   vertical-align: middle;
+}
+
+/* Loader Spinner */
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#loader {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1001; /* Ensure it's on top of other content */
+    background: rgba(255, 255, 255, 0.8); /* Optional: adds a semi-transparent background */
+    padding: 20px;
+    border-radius: 10px;
 }
